@@ -1,5 +1,9 @@
 const Books = require("../models/books")
 const User = require('../models/user')
+const fs = require("node:fs")
+const path = require("node:path")
+const csvParser = require('csv-parser');
+
 
 function authenticateUser(user){
      if(user.role === "SELLER"){
@@ -13,21 +17,36 @@ async function addBooks(req,res){
         if(!authenticateUser(req.user)){
             return res.status(403).json({msg:"Not authorized to upload",id:req.user})
         }
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-       const bookData = req.body;
-       if(!bookData){
-        return res.status(404).json({message:"Fields are required "})
-       }
-      const result =  await Books.create({
-           title:bookData.title,
-           author:bookData.author,
-           publishingData:bookData.publishingData,
-           price:bookData.price,
-           sellerId:req.user.id,
+       const bookData = []
+       const sellerId = req.user._id;
+
+       fs.createReadStream(path.resolve(req.file.path))
+       .pipe(csvParser())
+       .on("data",(row)=>{
+          const {title,author,publicationYear,price} = row
+          bookData.push({
+            title,
+            author,
+            publishedDate: new Date(publishedDate),
+            price: parseFloat(price),
+            sellerId
+          })
+
        })
-       console.log("requested user",result)
-
-       return res.status(200).json({msg:"Book uploaded successfully !!"})
+       .on("end",async ()=>{
+          try{
+           await Books.insertMany(bookData)
+           return res.status(200).json({message:"Message uploaded successfully !!"})
+          }
+          catch(error){
+            res.status(400).json({ error: 'Error uploading books' });
+          }
+          finally{
+            fs.unlinkSync(req.file.path); // Clean up the uploaded file
+          }
+       })
     }
     catch(error){ 
        console.log("There is some error")
@@ -136,7 +155,7 @@ async function getAllBooksInformation(req,res){
         else{
            const id = req.user.id;
            console.log("Requested user id",id)
-           
+
            const booksInformation2 = await Books.find({sellerId:id})
            
            if(!booksInformation2 || booksInformation2.length === 0){
@@ -150,6 +169,38 @@ async function getAllBooksInformation(req,res){
       return res.status(500).json({msg:"Internal Server error",error})
     }
 }
+
+
+async function addBooksTwo(req,res){
+  try{
+      if(!authenticateUser(req.user)){
+          return res.status(403).json({msg:"Not authorized to upload",id:req.user})
+      }
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+     const bookData = req.body;
+
+     if(!bookData){
+      return res.status(404).json({message:"Fields are required "})
+     }
+
+    const result =  await Books.create({
+         title:bookData.title,
+         author:bookData.author,
+         publishingData:bookData.publishingData,
+         price:bookData.price,
+         sellerId:req.user.id,
+     })
+     console.log("requested user",result)
+
+     return res.status(200).json({msg:"Book uploaded successfully !!"})
+  }
+  catch(error){ 
+     console.log("There is some error")
+     return res.status(500).json({msg:error})
+  }
+}
+
 module.exports = {
     addBooks,
     getAllBookCreatedBySeller,
