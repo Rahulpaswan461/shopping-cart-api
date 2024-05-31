@@ -25,7 +25,7 @@ async function addBooks(req,res){
        fs.createReadStream(path.resolve(req.file.path))
        .pipe(csvParser())
        .on("data",(row)=>{
-          const {title,author,publicationYear,price} = row
+          const {title,author,publishedDate,price} = row
           bookData.push({
             title,
             author,
@@ -172,33 +172,47 @@ async function getAllBooksInformation(req,res){
 
 
 async function addBooksTwo(req,res){
-  try{
+   try{
       if(!authenticateUser(req.user)){
-          return res.status(403).json({msg:"Not authorized to upload",id:req.user})
+        return res.status(403).json({msg:"Not Authorized to upload"})
       }
-      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+      
+      if(!res.file){
+        return res.status(400).json({msg:"NO file uploaded"})
+      }
+      const bookData = []
+      const sellerId = req.user._id;
 
-     const bookData = req.body;
+      fs.createReadStream(path.resolve(req.file.path))
+      .pipe(csvParser())
+      .on("data",(row)=>{
+        const {title,author,publishDate,price } = row;
 
-     if(!bookData){
-      return res.status(404).json({message:"Fields are required "})
-     }
-
-    const result =  await Books.create({
-         title:bookData.title,
-         author:bookData.author,
-         publishingData:bookData.publishingData,
-         price:bookData.price,
-         sellerId:req.user.id,
-     })
-     console.log("requested user",result)
-
-     return res.status(200).json({msg:"Book uploaded successfully !!"})
-  }
-  catch(error){ 
-     console.log("There is some error")
-     return res.status(500).json({msg:error})
-  }
+        bookData.push({
+           title,
+           author,
+           publishDate:new Date(publishDate),
+           price:parseFloat(price)
+        })
+      })
+      .on("end",async ()=>{
+         try{
+             await Books.insertMany(bookData)
+             return res.status(20).json({msg:"Data uploaded successfully !!"})
+         }
+         catch(error){
+          console.log("Errro while uploading the information ")
+           return res.status(500).json({msg:"Internal Sever Error",error})
+         }
+         finally{
+          fs.unlinkSync(req.file.path)
+         }
+      })
+   }
+    catch(error){
+         console.log("There is some error")
+         return res.status(500).json({msg:"Internal Server error"})
+    }
 }
 
 module.exports = {
