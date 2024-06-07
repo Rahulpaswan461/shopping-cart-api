@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser")
 const {checkForAuthenticateUser} = require("./middleware/authentication")
 const bookRoute = require("./routes/books")
 
-// const MONGO_URL = 'mongodb+srv://yash123doon:4MsHgrkoqShrXDA4@cluster0.lg5mrao.mongodb.net/'
+
 const MONGO_URL = process.env.MONGO_URL
 
 // connectMongoDB('mongodb://127.0.0.1:27017/shopping')
