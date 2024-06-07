@@ -8,7 +8,7 @@ const {checkForAuthenticateUser} = require("./middleware/authentication")
 const bookRoute = require("./routes/books")
 
 
-const MONGO_URL = process.env.MONGO_URL
+const MONGO_URL = process.env.MONGO_URL;
 
 // connectMongoDB('mongodb://127.0.0.1:27017/shopping')
 // .then(()=>console.log("MongoDB is connected"))
