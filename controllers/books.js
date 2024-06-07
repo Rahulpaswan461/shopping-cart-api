@@ -15,12 +15,13 @@ function authenticateUser(user){
 async function addBooks(req,res){
     try{
         if(!authenticateUser(req.user)){
+          
             return res.status(403).json({msg:"Not authorized to upload",id:req.user})
         }
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
        const bookData = []
-       const sellerId = req.user._id;
+       const sellerId = req.user.id;
 
        fs.createReadStream(path.resolve(req.file.path))
        .pipe(csvParser())
@@ -215,10 +216,31 @@ async function addBooksTwo(req,res){
     }
 }
 
+async function addBookInformaiton(req,res){
+   try{
+       const {title,author,publishingDate,price} = req.body;
+       console.log("Requested use id",req.user.id)
+      const result =  await Books.create({
+        title,
+        author,
+        publishingDate,
+        price,
+        sellerId:req.user.id,
+       })
+      if(!result) return res.status(404).json({msg:"Data is not inserted "})
+
+        return res.status(200).json(result)
+   }
+   catch(error){
+     console.log("Internal Server error",error)
+     return res.status(500).json({msg:"Internal server Error"})
+   }
+}
 module.exports = {
     addBooks,
     getAllBookCreatedBySeller,
     updateBookById,
     deleteBookInformationById,
-    getAllBooksInformation
+    getAllBooksInformation,
+    addBookInformaiton
 }

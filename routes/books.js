@@ -1,5 +1,5 @@
 const express = require("express")
-const {addBooks,getAllBookCreatedBySeller,updateBookById,deleteBookInformationById,getAllBooksInformation} =require("../controllers/books")
+const {addBooks,getAllBookCreatedBySeller,updateBookById,deleteBookInformationById,getAllBooksInformation,addBookInformaiton} =require("../controllers/books")
 const router = express()
 const multer = require("multer")
 
@@ -20,5 +20,6 @@ router.get('/:id',getAllBookCreatedBySeller);
 router.patch('/:id',updateBookById)
 router.delete('/:id',deleteBookInformationById)
 router.get("/",getAllBooksInformation)
+router.post("/add",addBookInformaiton)
 
 module.exports = router

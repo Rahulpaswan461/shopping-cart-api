@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require("express")
 const {connectMongoDB} = require("./connection")
 const userRoute = require("./routes/user")
@@ -5,9 +7,16 @@ const cookieParser = require("cookie-parser")
 const {checkForAuthenticateUser} = require("./middleware/authentication")
 const bookRoute = require("./routes/books")
 
-connectMongoDB('mongodb://127.0.0.1:27017/shopping')
-.then(()=>console.log("MongoDB is connected"))
-.catch((error)=>console.log("Ther is some error while connecting"))
+// const MONGO_URL = 'mongodb+srv://yash123doon:4MsHgrkoqShrXDA4@cluster0.lg5mrao.mongodb.net/'
+const MONGO_URL = process.env.MONGO_URL
+
+// connectMongoDB('mongodb://127.0.0.1:27017/shopping')
+// .then(()=>console.log("MongoDB is connected"))
+// .catch((error)=>console.log("Ther is some error while connecting"))
+
+connectMongoDB(MONGO_URL)
+.then(()=>console.log("Database is connected "))
+.catch((error)=>console.log("There is some error while connecting "))
 
 const app = express()
 const PORT  = process.env.PORT || 8000;
